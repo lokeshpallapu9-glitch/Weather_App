@@ -1,8 +1,5 @@
 
-const apiKey = "2d916643c0c301733fd0e122e64f5c57";
-
-const url =
-    "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+const url = "/.netlify/functions/get-weather?city=";
 
 const searchInput = document.querySelector(".ip");
 const searchBtn = document.querySelector(".searchbtn");
@@ -27,8 +24,8 @@ async function checkWeather(city) {
     searchBtn.textContent = "⏳";
 
     try {
-        const response = await fetch(
-            url + encodeURIComponent(city) + `&appid=${apiKey}`
+            const response = await fetch(
+            url + encodeURIComponent(city)
         );
 
         if (!response.ok) {

@@ -1,0 +1,5 @@
+# Keep local API key configuration out of Git
+.env
+# Local Netlify folder
+.netlify
+node_modules/
