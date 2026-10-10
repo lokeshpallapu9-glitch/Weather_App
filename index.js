@@ -1,41 +1,110 @@
-const apiKey="2d916643c0c301733fd0e122e64f5c57";
-const url="https://api.openweathermap.org/data/2.5/weather?units=metric&q="
 
-const searchinput=document.querySelector(".ip");
-const searchbtn=document.querySelector(".searchbtn");
+const apiKey = "2d916643c0c301733fd0e122e64f5c57";
 
+const url =
+    "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
 
-async function checkWeather(city){
+const searchInput = document.querySelector(".ip");
+const searchBtn = document.querySelector(".searchbtn");
 
-    city=city.trim();
-    if(city===""){
-        alert("Enter city name");
+const weatherInfo = document.querySelector(".weather-info");
+const errorMessage = document.querySelector(".invalid");
+
+const weatherIcon = document.querySelector(".weather-icon");
+const description = document.querySelector(".description");
+
+async function checkWeather(city) {
+    city = city.trim();
+
+    if (city === "") {
+        errorMessage.textContent = "Please enter a city name.";
+        errorMessage.style.display = "block";
+        weatherInfo.style.display = "none";
         return;
     }
-    const response=await fetch(url + encodeURIComponent(city) + `&appid=${apiKey}`);
-    if(!response.ok){    
-        document.querySelector(".invalid").style.display="block";
-        document.querySelector(".d3").style.display="none";
-        document.querySelector(".ip").value="";
-        return;
+
+    searchBtn.disabled = true;
+    searchBtn.textContent = "⏳";
+
+    try {
+        const response = await fetch(
+            url + encodeURIComponent(city) + `&appid=${apiKey}`
+        );
+
+        if (!response.ok) {
+            errorMessage.textContent =
+                response.status === 404
+                    ? "City not found. Please try again."
+                    : "Unable to fetch weather. Please try again.";
+
+            errorMessage.style.display = "block";
+            weatherInfo.style.display = "none";
+            return;
+        }
+
+        const data = await response.json();
+        // Change the background based on weather
+        document.body.classList.remove(
+            "sunny", "cloudy", "rainy", "snowy"
+        );
+
+        const condition = data.weather[0].main.toLowerCase();
+
+        if (condition === "clear") {
+            document.body.classList.add("sunny");
+        } else if (condition === "clouds") {
+            document.body.classList.add("cloudy");
+        } else if (
+            condition === "rain" ||
+            condition === "drizzle" ||
+            condition === "thunderstorm"
+        ) {
+            document.body.classList.add("rainy");
+        } else if (condition === "snow") {
+            document.body.classList.add("snowy");
+        }
+
+        document.querySelector(".temp").textContent =
+            Math.round(data.main.temp) + "°C";
+
+        document.querySelector(".city").textContent = data.name;
+
+        document.querySelector(".humidity").textContent =
+            data.main.humidity + "%";
+
+        document.querySelector(".wind").textContent =
+            data.wind.speed + " m/s";
+
+        description.textContent = data.weather[0].description;
+
+        weatherIcon.src =
+            `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+
+        weatherIcon.alt = data.weather[0].description;
+
+        weatherInfo.style.display = "block";
+        errorMessage.style.display = "none";
+
+    } catch (error) {
+        errorMessage.textContent =
+            "Network error. Please check your internet connection.";
+
+        errorMessage.style.display = "block";
+        weatherInfo.style.display = "none";
+
+    } finally {
+        searchBtn.disabled = false;
+        searchBtn.textContent = "🔍";
     }
-
-    var data=await response.json();
-
-    document.querySelector(".temp").innerHTML=Math.round(data.main.temp) + "°c";
-    document.querySelector(".city").innerHTML=data.name;
-    document.querySelector(".humidity").innerHTML=data.main.humidity + "%";
-    document.querySelector(".wind").innerHTML=data.wind.speed + " km/h";
-
-    document.querySelector(".d3").style.display="block";
-    document.querySelector(".invalid").style.display="none";
-
-    document.querySelector(".ip").value="";         
-    
 }
-    
 
-searchbtn.addEventListener("click",()=>{
-    checkWeather(searchinput.value);
-})
+searchBtn.addEventListener("click", () => {
+    checkWeather(searchInput.value);
+});
+
+searchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        checkWeather(searchInput.value);
+    }
+});
 
